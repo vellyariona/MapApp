@@ -7,7 +7,11 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,7 +21,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.mapapp.databinding.ActivityMapsBinding;
@@ -64,6 +71,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(vokasiUGM, 25));
 //        1, 5, 10, 15, 25
 
+//        menambahkan style pada map
+        MapStyleOptions myStyle =  MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style);
+        mMap.setMapStyle(myStyle);
+
         setMapLongClick(mMap);
         setPoiClick(mMap);
         enableMyLocation();
@@ -96,7 +107,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-//    ketika melakukan long click muncul markernya, lalu setmapnya dipanggil di onmapready
+//    ketika melakukan long click muncul marker, kemudian setmapnya dipanggil di onmapready
     private void setMapLongClick(final GoogleMap map){
         map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
@@ -107,19 +118,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         latLng.longitude);
                 map.addMarker(new MarkerOptions().position(latLng)
                         .title("Dropped pin")
-                        .snippet(text));
+                        .snippet(text)
+//                        menambahkan icon marker
+                        .icon(BitmapFromVector(getApplicationContext(), R.drawable.markervelly)));
             }
         });
     }
 
-//    menampilkan marker tetapi labelnya juga langsung ditampilkan
+//    menampilkan marker, labelnya juga langsung ditampilkan
     private void setPoiClick(final GoogleMap map){
         map.setOnPoiClickListener(new GoogleMap.OnPoiClickListener() {
             @Override
             public void onPoiClick(@NonNull PointOfInterest pointOfInterest) {
                 Marker poiMarker = mMap.addMarker(new MarkerOptions()
                         .position(pointOfInterest.latLng)
-                        .title(pointOfInterest.name));
+                        .title(pointOfInterest.name)
+//                        menambahkan icon marker
+                        .icon(BitmapFromVector(getApplicationContext(), R.drawable.markervelly)));
                 poiMarker.showInfoWindow();
             }
         });
@@ -147,5 +162,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     break;
                 }
         }
+    }
+
+
+    private BitmapDescriptor BitmapFromVector(Context context, int vectorResId) {
+        // below line is use to generate a drawable.
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+
+        // below line is use to set bounds to our vector drawable.
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+
+        // below line is use to create a bitmap for our
+        // drawable which we have added.
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+
+        // below line is use to add bitmap in our canvas.
+        Canvas canvas = new Canvas(bitmap);
+
+        // below line is use to draw our
+        // vector drawable in canvas.
+        vectorDrawable.draw(canvas);
+
+        // after generating our bitmap we are returning our bitmap.
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 }
